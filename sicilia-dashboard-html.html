@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cruscotto Flusso di Cassa - Gruppo Karol Sicilia</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css');
+        .modal {
+            backdrop-filter: blur(4px);
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Header -->
+        <div class="mb-8 text-center relative">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                Cruscotto Flusso di Cassa - Sicilia
+            </h1>
+            <p class="text-lg text-gray-600 mb-4">
+                Gruppo Karol - Sicilia | Attività Sanitarie e Socio Sanitarie - Prestazioni Convenzionate
+            </p>
+            
+            <button id="btnValidaDati" class="absolute top-0 right-0 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                ⚠️ Valida Dati
+            </button>
+            
+            <div id="validationPanel" class="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4 text-left hidden">
+                <h3 class="font-semibold text-orange-800 mb-2">Validazione Dati - Righe Excel & Calcolo Scostamento:</h3>
+                <div class="text-sm text-orange-700 space-y-2">
+                    <div class="bg-white p-3 rounded border border-orange-300">
+                        <h4 class="font-semibold mb-2">📊 Calcolo Scostamento Totale: €-28.853</h4>
+                        <div class="space-y-1 font-mono text-xs">
+                            <div class="flex justify-between">
+                                <span>CTA - Comunità Terapeutica...</span>
+                                <span class="text-red-600">€-42.081</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>RSA...</span>
+                                <span class="text-red-600">€-11.273</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Casa di Cura COSENTINO...</span>
+                                <span class="text-green-600">€82.749</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Altri...</span>
+                                <span class="text-red-600">€-222</span>
+                            </div>
+                            <div class="border-t pt-1 mt-2 font-bold">
+                                <div class="flex justify-between">
+                                    <span>TOTALE SCOSTAMENTO:</span>
+                                    <span class="text-red-600">€-28.853</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-3 rounded border border-blue-300">
+                        <h4 class="font-semibold mb-2">🏥 CTA - Parametri Operativi (7 mesi):</h4>
+                        <div class="text-xs space-y-1">
+                            <div>• <strong>Posti Letto:</strong> 40</div>
+                            <div>• <strong>Tariffa Pro Die:</strong> €156/giorno</div>
+                            <div>• <strong>Giorni Operativi (Gen-Lug):</strong> 212</div>
+                            <div>• <strong>Budget Teorico Piena Occupazione:</strong> €1.322.880</div>
+                            <div>• <strong>Fatturato Effettivo:</strong> €1.280.799</div>
+                            <div>• <strong>% Occupazione Teorica:</strong> 96.8%</div>
+                            <div>• <strong>Scostamento vs Teorico:</strong> €-42.081</div>
+                            <div class="mt-2 text-yellow-800 bg-yellow-100 p-2 rounded">
+                                <strong>⚠️ Note:</strong> 7 mesi operativi - Esclude agosto. Performance vicina al teorico
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 p-3 rounded border border-green-300">
+                        <h4 class="font-semibold mb-2">🏢 COSENTINO - Strategia Acuti:</h4>
+                        <div class="text-xs space-y-1">
+                            <div>• <strong>Budget Annuo Acuti:</strong> €3.944.958</div>
+                            <div>• <strong>Budget 7 mesi (7/12):</strong> €2.301.225</div>
+                            <div>• <strong>Chirurgia ORTOPEDICA:</strong> €1.861.802</div>
+                            <div>• <strong>RIABILITAZIONE:</strong> €522.172</div>
+                            <div>• <strong>Totale Fatturato:</strong> €2.383.974</div>
+                            <div>• <strong>Surplus Strategico:</strong> +€82.749</div>
+                            <div class="mt-2 text-green-800 bg-green-100 p-2 rounded">
+                                <strong>✅ Strategia:</strong> Surplus strategico per compensare agosto e contestazioni ASP
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-500">
+                <h3 class="text-sm font-medium text-gray-500 mb-2">Fatturato Totale (7 mesi)</h3>
+                <p class="text-3xl font-bold text-blue-600" id="kpiFatturato">€5.348.241</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-green-500">
+                <h3 class="text-sm font-medium text-gray-500 mb-2">Budget Totale (7 mesi)</h3>
+                <p class="text-3xl font-bold text-green-600" id="kpiBudget">€5.377.094</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-green-500">
+                <h3 class="text-sm font-medium text-gray-500 mb-2">% Realizzazione</h3>
+                <p class="text-3xl font-bold text-green-600" id="kpiPercentuale">99.5%</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-red-500">
+                <h3 class="text-sm font-medium text-gray-500 mb-2">Scostamento</h3>
+                <p class="text-3xl font-bold text-red-600" id="kpiScostamento">€-28.853</p>
+            </div>
+        </div>
+
+        <!-- Main Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Performance Chart -->
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Performance vs Budget per Struttura</h3>
+                <div style="height: 350px;">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Criticità Chart -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Livello di Criticità</h3>
+                <div style="height: 350px;">
+                    <canvas id="criticitaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Structure Analysis -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-semibold text-gray-900 mb-6">Analisi Dettagliata per Struttura</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full table-auto">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase">Struttura</th>
+                            <th class="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase">Riga Excel</th>
+                            <th class="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase">Dettagli Operativi</th>
+                            <th class="px-4 py-3 text-right text-sm font-medium text-gray-500 uppercase">Budget Annuale</th>
+                            <th class="px-4 py-3 text-right text-sm font-medium text-gray-500 uppercase">Fatturato (7m)</th>
+                            <th class="px-4 py-3 text-right text-sm font-medium text-gray-500 uppercase">Budget (7m)</th>
+                            <th class="px-4 py-3 text-right text-sm font-medium text-gray-500 uppercase">% Real.</th>
+                            <th class="px-4 py-3 text-right text-sm font-medium text-gray-500 uppercase">Scostamento</th>
+                            <th class="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-4 text-sm">
+                                <div class="font-medium text-gray-900">CTA - Comunità Terapeutica Assistita</div>
+                                <div class="text-xs text-gray-500">Servizi Intensivi ed Estensivi + Permessi Terapeutici</div>
+                                <div class="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded mt-1">
+                                    7 mesi operativi - Esclude agosto. Performance vicina al teorico
+                                </div>
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-600 text-center font-mono">4</td>
+                            <td class="px-4 py-4 text-sm text-center">
+                                <div class="text-xs">
+                                    <div class="font-medium text-blue-700">40 posti letto</div>
+                                    <div class="text-gray-600">€156/die</div>
+                                    <div class="text-green-600">96.8% occ. teorica</div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right">€2.277.600</td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right font-medium">€1.280.799</td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right">€1.328.600</td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-green-600">96.8%</td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-red-600">€-42.081</td>
+                            <td class="px-4 py-4 text-center">
+                                <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Media
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-4 text-sm font-medium text-gray-900">RSA</td>
+                            <td class="px-4 py-4 text-sm text-gray-600 text-center font-mono">10</td>
+                            <td class="px-4 py-4 text-sm text-center">
+                                <span class="text-gray-400 text-xs">-</span>
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right">€2.456.596</td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right font-medium">€1.421.739</td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right">€1.433.012</td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-green-600">99.2%</td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-red-600">€-11.273</td>
+                            <td class="px-4 py-4 text-center">
+                                <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Bassa
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-4 text-sm">
+                                <div class="font-medium text-gray-900">Casa di Cura COSENTINO - ACUTI</div>
+                                <div class="text-xs text-gray-500">Chirurgia ORTOPEDICA + RIABILITAZIONE</div>
+                                <div class="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded mt-1">
+                                    Surplus strategico per compensare agosto e contestazioni ASP
+                                </div>
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-600 text-center font-mono">14</td>
+                            <td class="px-4 py-4 text-sm text-center">
+                                <span class="text-gray-400 text-xs">-</span>
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right">€3.944.958</td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right font-medium">€2.383.974</td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right">€2.301.225</td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-green-600">103.6%</td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-green-600">€82.749</td>
+                            <td class="px-4 py-4 text-center">
+                                <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Bassa
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-4 text-sm font-medium text-gray-900">Radiologia rimborso ASL</td>
+                            <td class="px-4 py-4 text-sm text-gray-600 text-center font-mono">20</td>
+                            <td class="px-4 py-4 text-sm text-center">
+                                <span class="text-gray-400 text-xs">-</span>
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right">€370.712</td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right font-medium">€216.063</td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right">€216.249</td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-green-600">99.9%</td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-red-600">€-185</td>
+                            <td class="px-4 py-4 text-center">
+                                <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Bassa
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-4 text-sm font-medium text-gray-900">FKT-Rimborso SSR</td>
+                            <td class="px-4 py-4 text-sm text-gray-600 text-center font-mono">24</td>
+                            <td class="px-4 py-4 text-sm text-center">
+                                <span class="text-gray-400 text-xs">-</span>
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right">€110.919</td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right font-medium">€64.666</td>
+                            <td class="px-4 py-4 text-sm text-gray-900 text-right">€64.703</td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-green-600">99.9%</td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-red-600">€-37</td>
+                            <td class="px-4 py-4 text-center">
+                                <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Bassa
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Azioni Rapide -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Azioni Rapide</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button id="btnReport" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    📊 Genera Report
+                </button>
+                
+                <button id="btnAlert" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    🚨 Verifica Alert
+                </button>
+                
+                <button id="btnProiezioni" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    📈 Proiezione Annuale
+                </button>
+            </div>
+        </div>
+
+        <!-- Sezione Analisi Scostamento Dettagliata -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">📊 Analisi Dettagliata Scostamento: €-28.853</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Breakdown Scostamento -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-800 mb-3">Composizione Scostamento per Struttura</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center p-2 bg-white rounded border">
+                            <div>
+                                <span class="font-medium text-sm">CTA - Comunità Terapeutica...</span>
+                                <div class="text-xs text-gray-500">40 posti • €156/die</div>
+                            </div>
+                            <span class="font-bold text-red-600">€-42.081</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 bg-white rounded border">
+                            <span class="font-medium text-sm">RSA</span>
+                            <span class="font-bold text-red-600">€-11.273</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 bg-white rounded border">
+                            <span class="font-medium text-sm">Casa di Cura COSENTINO...</span>
+                            <span class="font-bold text-green-600">€82.749</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 bg-white rounded border">
+                            <span class="font-medium text-sm">Altri</span>
+                            <span class="font-bold text-red-600">€-222</span>
+                        </div>
+                        <div class="border-t-2 border-gray-300 pt-2 mt-3">
+                            <div class="flex justify-between items-center font-bold">
+                                <span>TOTALE SCOSTAMENTO:</span>
+                                <span class="text-red-600 text-lg">€-28.853</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Focus CTA -->
+                <div class="bg-green-50 rounded-lg p-4">
+                    <h4 class="font-semibold text-green-800 mb-3">🏥 Focus CTA - Analisi Corretta (7 mesi)</h4>
+                    <div class="space-y-3">
+                        <div class="bg-white p-3 rounded border border-green-200">
+                            <h5 class="font-medium text-green-700 mb-2">Parametri Operativi CTA:</h5>
+                            <div class="text-sm space-y-1">
+                                <div class="flex justify-between">
+                                    <span>Posti Letto:</span>
+                                    <span class="font-bold">40</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Tariffa Pro Die:</span>
+                                    <span class="font-bold">€156</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Giorni Operativi (7m):</span>
+                                    <span class="font-bold">212</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3 rounded border border-green-200">
+                            <h5 class="font-medium text-green-700 mb-2">Confronto Budget:</h5>
+                            <div class="text-sm space-y-1">
+                                <div class="flex justify-between">
+                                    <span>Budget Pianificato (7m):</span>
+                                    <span class="font-bold">€1.328.600</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Budget Teorico Piena Occ.:</span>
+                                    <span class="font-bold text-blue-600">€1.322.880</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Fatturato Effettivo:</span>
+                                    <span class="font-bold text-gray-800">€1.280.799</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3 rounded border border-green-200">
+                            <h5 class="font-medium text-green-700 mb-2">Performance (CORRETTA):</h5>
+                            <div class="text-sm space-y-1">
+                                <div class="flex justify-between">
+                                    <span>% vs Budget Pianificato:</span>
+                                    <span class="font-bold text-green-600">96.8%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>% vs Teorico Piena Occ.:</span>
+                                    <span class="font-bold text-green-600">96.8%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Scostamento (Cella BO):</span>
+                                    <span class="font-bold text-orange-600">€-42.081</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-xs text-gray-600 bg-gray-100 p-2 rounded">
+                            <strong>Note:</strong> 7 mesi operativi - Esclude agosto. Performance vicina al teorico
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calcolo Formula -->
+            <div class="mt-6 bg-blue-50 rounded-lg p-4">
+                <h4 class="font-semibold text-blue-800 mb-2">🧮 Formula Calcolo Scostamento Totale (7 mesi)</h4>
+                <div class="font-mono text-sm bg-white p-3 rounded border border-blue-200">
+                    <div class="text-blue-700">
+                        Scostamento Totale = Σ (Fatturato Effettivo - Budget Pianificato)
+                    </div>
+                    <div class="mt-2 text-gray-700">
+                        CTA: (€1.280.799 - €1.328.600) = €-42.081
+                    </div>
+                    <div class="text-gray-700">
+                        RSA: (€1.421.739 - €1.433.012) = €-11.273
+                    </div>
+                    <div class="text-gray-700">
+                        COSENTINO: (€2.383.974 - €2.301.225) = +€82.749
+                    </div>
+                    <div class="text-gray-700">
+                        + Altri scostamenti minori = €-222
+                    </div>
+                    <div class="mt-2 text-red-700 font-bold">
+                        = €-28.853 TOTALE
+                    </div>
+                </div>
+                <div class="mt-2 text-xs text-blue-600">
+                    * Dati corretti per 7 mesi (Gen-Lug) come da celle Excel BO
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Items -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Aree di Intervento Prioritarie</h3>
+            <div class="space-y-4">
+                <div class="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex-shrink-0">
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h4 class="text-sm font-medium text-green-800">
+                            Situazione Eccellente - Performance 99.5%
+                        </h4>
+                        <p class="text-sm text-green-600">
+                            Il Gruppo Karol - Sicilia mostra performance eccellenti con solo -€28.853 di scostamento su €5.377.094 di budget. 
+                            CTA necessita ottimizzazione occupazione (96.8% vs teorico), mentre COSENTINO ha implementato con successo 
+                            la strategia di surplus per compensare agosto e contestazioni ASP.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Report -->
+    <div id="modalReport" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">📊 Report Dettagliato Gruppo Karol - Sicilia</h3>
+                <button id="closeReport" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2">📈 Sintesi Esecutiva</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div><strong>Periodo:</strong> Gennaio - Luglio 2025 (7 mesi)</div>
+                        <div><strong>Performance Totale:</strong> 99.5%</div>
+                        <div><strong>Fatturato Realizzato:</strong> €5.348.241</div>
+                        <div><strong>Scostamento Budget:</strong> €-28.853</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">💡 Raccomandazioni</h4>
+                    <ul class="text-sm space-y-1">
+                        <li>• <strong>CTA:</strong> Performance 96.8% su budget teorico - Servizi: Intensivi/Estensivi + Permessi Terapeutici</li>
+                        <li>• <strong>COSENTINO:</strong> Surplus strategico +€82.749 per compensare agosto</li>
+                        <li>• <strong>RSA:</strong> Leggero scostamento €-11.273 da monitorare</li>
+                        <li>• <strong>Strutture RADIOLOGIA/FKT:</strong> Performance stabili in linea con obiettivi</li>
+                    </ul>
+                </div>
+
+                <div class="text-center">
+                    <button id="copyReport" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                        📋 Copia Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Alert -->
+    <div id="modalAlert" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">🚨 Sistema Alert - Monitoraggio Criticità</h3>
+                <button id="closeAlert" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="border-l-4 border-green-500 bg-green-50 p-4">
+                    <h4 class="font-semibold text-green-800 mb-2">🟢 SITUAZIONE OTTIMALE</h4>
+                    <div class="text-green-700 text-sm">
+                        <p>✅ Performance complessiva del 99.5%</p>
+                        <p>✅ Scostamento contenuto: solo -€28.853 su €5.377.094</p>
+                        <p>✅ Tutte le strutture sopra il 95% di performance</p>
+                        <p>✅ Strategia COSENTINO efficace</p>
+                    </div>
+                </div>
+
+                <div class="border-l-4 border-yellow-500 bg-yellow-50 p-4">
+                    <h4 class="font-semibold text-yellow-800 mb-2">⚠️ AREE DI ATTENZIONE</h4>
+                    <div class="text-yellow-700 text-sm">
+                        <p>• CTA: Occupazione al 96.8% - margini di miglioramento</p>
+                        <p>• RSA: Lieve scostamento da monitorare</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Proiezioni -->
+    <div id="modalProiezioni" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">📈 Proiezioni Fine Anno 2025</h3>
+                <button id="closeProiezioni" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2">📊 Scenario Gruppo Karol - Sicilia</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div><strong>Budget Annuale Totale:</strong><br/>€13.160.785</div>
+                        <div><strong>Proiezione Totale:</strong><br/>€9.168.413</div>
+                        <div><strong>Gap Stimato:</strong><br/><span class="text-red-600 font-medium">€-3.992.372</span></div>
+                        <div><strong>% Raggiungimento:</strong><br/><span class="text-blue-600 font-bold">69.7%</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-yellow-800 mb-2">💡 Raccomandazioni Strategiche</h4>
+                    <ul class="text-sm space-y-1">
+                        <li>• <strong>CTA:</strong> Occupazione al 96.8% del teorico - ottimizzare 40 posti letto</li>
+                        <li>• <strong>COSENTINO:</strong> Surplus €82.749 strategico per compensare agosto e contestazioni ASP</li>
+                        <li>• <strong>RSA:</strong> Leggero scostamento €-11.273 da monitorare</li>
+                        <li>• <strong>Radiologia/FKT:</strong> Performance stabili in linea con budget</li>
+                        <li>• <strong>Focus Agosto:</strong> Monitorare impatto mese di agosto sulla proiezione annuale</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dati JavaScript
+        const struttureDati = [
+            {
+                nome: "CTA - Comunità Terapeutica Assistita",
+                totaleFatturato: 1280799,
+                budgetCumulato7Mesi: 1328600,
+                percentualeRealizzata: 96.8,
+                scostamento: -42081
+            },
+            {
+                nome: "RSA",
+                totaleFatturato: 1421739,
+                budgetCumulato7Mesi: 1433012,
+                percentualeRealizzata: 99.2,
+                scostamento: -11273
+            },
+            {
+                nome: "Casa di Cura COSENTINO",
+                totaleFatturato: 2383974,
+                budgetCumulato7Mesi: 2301225,
+                percentualeRealizzata: 103.6,
+                scostamento: 82749
+            },
+            {
+                nome: "Radiologia ASL",
+                totaleFatturato: 216063,
+                budgetCumulato7Mesi: 216249,
+                percentualeRealizzata: 99.9,
+                scostamento: -185
+            },
+            {
+                nome: "FKT-SSR",
+                totaleFatturato: 64666,
+                budgetCumulato7Mesi: 64703,
+                percentualeRealizzata: 99.9,
+                scostamento: -37
+            }
+        ];
+
+        // Funzioni utilità
+        function formattaValuta(valore) {
+            return `€${Math.round(valore).toLocaleString('it-IT')}`;
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Validazione dati toggle
+            document.getElementById('btnValidaDati').addEventListener('click', function() {
+                const panel = document.getElementById('validationPanel');
+                panel.classList.toggle('hidden');
+            });
+
+            // Modal Report
+            document.getElementById('btnReport').addEventListener('click', function() {
+                document.getElementById('modalReport').classList.remove('hidden');
+            });
+
+            document.getElementById('closeReport').addEventListener('click', function() {
+                document.getElementById('modalReport').classList.add('hidden');
+            });
+
+            // Modal Alert
+            document.getElementById('btnAlert').addEventListener('click', function() {
+                document.getElementById('modalAlert').classList.remove('hidden');
+            });
+
+            document.getElementById('closeAlert').addEventListener('click', function() {
+                document.getElementById('modalAlert').classList.add('hidden');
+            });
+
+            // Modal Proiezioni
+            document.getElementById('btnProiezioni').addEventListener('click', function() {
+                document.getElementById('modalProiezioni').classList.remove('hidden');
+            });
+
+            document.getElementById('closeProiezioni').addEventListener('click', function() {
+                document.getElementById('modalProiezioni').classList.add('hidden');
+            });
+
+            // Copia Report
+            document.getElementById('copyReport').addEventListener('click', function() {
+                const reportText = `GRUPPO KAROL - SICILIA - REPORT 7 MESI
+
+Performance Totale: 99.5%
+Fatturato: €5.348.241
+Budget: €5.377.094
+Scostamento: €-28.853
+
+SITUAZIONE ECCELLENTE - Tutte le strutture performano sopra il 95%`;
+
+                navigator.clipboard.writeText(reportText).then(function() {
+                    alert('✅ Report copiato negli appunti!');
+                });
+            });
+
+            // Inizializza grafici
+            initCharts();
+        });
+
+        // Inizializzazione grafici
+        function initCharts() {
+            // Performance Chart
+            const ctxPerformance = document.getElementById('performanceChart').getContext('2d');
+            new Chart(ctxPerformance, {
+                type: 'bar',
+                data: {
+                    labels: struttureDati.map(s => s.nome.length > 12 ? s.nome.substring(0, 12) + '...' : s.nome),
+                    datasets: [{
+                        label: 'Budget',
+                        data: struttureDati.map(s => s.budgetCumulato7Mesi),
+                        backgroundColor: '#e5e7eb'
+                    }, {
+                        label: 'Fatturato',
+                        data: struttureDati.map(s => s.totaleFatturato),
+                        backgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '€' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Criticità Chart
+            const ctxCriticita = document.getElementById('criticitaChart').getContext('2d');
+            new Chart(ctxCriticita, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Alta', 'Media', 'Bassa'],
+                    datasets: [{
+                        data: [0, 1, 4],
+                        backgroundColor: ['#ef4444', '#f59e0b', '#10b981']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chiusura modal con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.classList.add('hidden');
+                });
+            }
+        });
+
+        // Chiusura modal cliccando fuori
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
